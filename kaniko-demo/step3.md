@@ -44,9 +44,9 @@ cat << EOF > Dockerfile
 FROM alpine
 
 ENV VERSION="v1.24.1" 
-RUN wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz && \
-  tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin && \
-  rm -f crictl-$VERSION-linux-amd64.tar.gz
+RUN wget https://github.com/kubernetes-sigs/cri-tools/releases/download/\$VERSION/crictl-\$VERSION-linux-amd64.tar.gz && \
+  tar zxvf crictl-\$VERSION-linux-amd64.tar.gz -C /usr/local/bin && \
+  rm -f crictl-\$VERSION-linux-amd64.tar.gz
 CMD ["/bin/echo", "It is alive !!!"]
 EOF
 docker build -t my-super-image .
