@@ -42,6 +42,11 @@ and we try to build our image inside the containers
 cd /tmp
 cat << EOF > Dockerfile
 FROM alpine
+
+ENV VERSION="v1.24.1" 
+RUN wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz && \
+  tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin && \
+  rm -f crictl-$VERSION-linux-amd64.tar.gz
 CMD ["/bin/echo", "It is alive !!!"]
 EOF
 docker build -t my-super-image .
@@ -57,26 +62,16 @@ Then, it is a major security threat : accessing docker daemon from within a cont
 
 Want to see it by yourself ? A pod is running a container quoting the sitcom *Friends*
 You can display its logs in a second tab :
-
-- > with Kubernetes on Docker
 `sleep 1; kubectl logs -f friends`{{execute T2}}
 
-- > with Kubernetes on containerd
-`sleep 1; docker logs -f friends`{{execute T2}}
-
-
 Go back to the first tab. You can find the running container by querying the Docker Daemon, through the socket :
-`docker ps --filter="ancestor=plopezfr/friends-quotes:1.0"`{{execute T1}}
+`docker run -v /run/containerd/containerd.sock:/run/containerd/containerd.sock:ro -e IMAGE_SERVICE_ENDPOINT=unix:///run/containerd/containerd.sock -e CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock -t my-super-image /bin/sh -c 'crictl ps --name friends'`{{execute T1}}
 
 You can even kill this container :
-`docker kill $(docker ps -a -q --filter="ancestor=plopezfr/friends-quotes:1.0" --format="{{.ID}}")`{{execute T1}}
+`docker run -v /run/containerd/containerd.sock:/run/containerd/containerd.sock:ro -e IMAGE_SERVICE_ENDPOINT=unix:///run/containerd/containerd.sock -e CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock -t my-super-image /bin/sh -c 'crictl rm -f $(crictl ps --name friends -q)'`{{execute T1}}
 
-- > with Kubernetes on Docker
 Check pod status :
 `kubectl get pods`{{execute T2}}
-
-- > with Kubernetes on containerd
-`docker ps -a | grep friends`{{execute T2}}
 
 Not that great...
 
